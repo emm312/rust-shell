@@ -4,12 +4,15 @@ mod filesystemhandler;
 extern crate serde;
 use serde_json;
 use std::fs::File;
+use std::fs;
 use std::io::Read;
 
 fn main() {
-    // read the json file
+    if fs::metadata("filesystem.json").is_ok() == false {
+        reset_json();
+    }
     let mut filesystemobj = filesystemhandler::FileSystem::new("/".to_string());
-    let mut file = File::open(r"src\filesystem.json").unwrap();
+    let mut file = File::open(r"filesystem.json").unwrap();
     let mut contents = String::new();
     file.read_to_string(&mut contents).unwrap();
     filesystemobj = serde_json::from_str(&contents).unwrap();
@@ -75,7 +78,13 @@ fn input() -> String {
 
 fn save_filesystem(filesystemobj: &filesystemhandler::FileSystem) -> bool {
     let v = serde_json::to_string(&filesystemobj).unwrap();
-    let mut file = File::create(r"src\filesystem.json").unwrap();
+    let mut file = File::create(r"filesystem.json").unwrap();
     file.write_all(v.as_bytes()).unwrap();
     return true;
+}
+
+fn reset_json() -> std::io::Result<()> {
+    let mut file = File::create("filesystem.json")?;
+    file.write_all(r#"{"root":"/","files":[],"folders":[]}"#.as_bytes())?;
+    Ok(())
 }
