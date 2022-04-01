@@ -21,7 +21,6 @@ impl FileSystem {
     pub fn add_folder(&mut self, folder: String) {
         self.folders.push(folder);
     }
-
 }
 
 struct Folder<'a> {

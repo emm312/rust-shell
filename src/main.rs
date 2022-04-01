@@ -3,10 +3,17 @@ use std::io::{Write};
 mod filesystemhandler;
 extern crate serde;
 use serde_json;
+use std::fs::File;
+use std::io::Read;
 
 fn main() {
-
-    let mut fs = filesystemhandler::FileSystem::new("/".to_string());
+    // read the json file
+    let mut filesystemobj = filesystemhandler::FileSystem::new("/".to_string());
+    let mut file = File::open(r"src\filesystem.json").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
+    filesystemobj = serde_json::from_str(&contents).unwrap();
+    
 
 
     loop {
@@ -14,6 +21,7 @@ fn main() {
         io::stdout().flush();
         let command = input();
         let command_array = command.split_whitespace().collect::<Vec<&str>>();
+
         for s in command_array {
             match s {
                 "exit" => {
@@ -25,19 +33,28 @@ fn main() {
                     break;
                 },
                 "help" => {
-                    println!("Available commands:\n\tclear\n\texit\n\thelp\n");
+                    println!("Available commands:\n\tclear\n\texit\n\thelp\n\tmkdir\n\tmkfile\n\tls\n\tlsdebug");
                     break;
                 },
                 "mkdir" => {
-                    fs.add_folder(input().trim_end().to_string());
-                    let v = serde_json::to_string(&fs).unwrap();
-                    println!("{}", v);
+                    filesystemobj.add_folder(input().trim_end().to_string());
+                    let v = serde_json::to_string(&filesystemobj).unwrap();
+                    save_filesystem(&filesystemobj);
                     break;
                 },
                 "mkfile" => {
-                    fs.add_file(input().trim_end().to_string());
-                    let v = serde_json::to_string(&fs).unwrap();
-                    println!("{}", v);
+                    filesystemobj.add_file(input().trim_end().to_string());
+                    let v = serde_json::to_string(&filesystemobj).unwrap();
+                    save_filesystem(&filesystemobj);
+                    break;
+                },
+                "ls" => {
+                    println!("Folders: {:?}", filesystemobj.folders);
+                    println!("Files: {:?}", filesystemobj.files);
+                    break;
+                },
+                "lsdebug" => {
+                    println!("{}", serde_json::to_string(&filesystemobj).unwrap());
                     break;
                 },
                 _ => {
@@ -54,4 +71,11 @@ fn input() -> String {
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
     return input;
+}
+
+fn save_filesystem(filesystemobj: &filesystemhandler::FileSystem) -> bool {
+    let v = serde_json::to_string(&filesystemobj).unwrap();
+    let mut file = File::create(r"src\filesystem.json").unwrap();
+    file.write_all(v.as_bytes()).unwrap();
+    return true;
 }
