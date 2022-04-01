@@ -1,4 +1,4 @@
 /target
-filesystem.json
+/filesystem.json
 /src/filesystem.json
-Makefile
+/Makefile
